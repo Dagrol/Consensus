@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by pavan on 25/07/2016.
  */
-public class HeartBeat {
+public class Demo {
 
     public static void main(String[] args) throws Exception{
         HttpServer server = HttpServer.create(new InetSocketAddress(8000),0);
