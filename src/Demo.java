@@ -1,10 +1,3 @@
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 
 /**
  * Created by pavan on 25/07/2016.
@@ -12,20 +5,19 @@ import java.net.InetSocketAddress;
 public class Demo {
 
     public static void main(String[] args) throws Exception{
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000),0);
-        server.createContext("/test",new MyHandler());
-        server.setExecutor(null);
-        server.start();
+        Thread controller1 = new Thread(new Controller(0,8000));
+        Thread heartBeatManager1 = new Thread(new HeartBeatManager(0,8000));
+        controller1.start();
+        heartBeatManager1.start();
+
+
+        Thread controller2 = new Thread(new Controller(0,8001));
+        Thread heartBeatManager2 = new Thread(new HeartBeatManager(0,8001));
+        controller2.start();
+        heartBeatManager2.start();
+
     }
 
-    static class MyHandler implements HttpHandler{
-        @Override
-        public void handle(HttpExchange t) throws IOException{
-            String response = "This is a response";
-            t.sendResponseHeaders(200,response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-    }
+
+
 }
