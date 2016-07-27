@@ -6,17 +6,23 @@ import java.util.List;
 public class Message {
     public String Data;
     public String Type;
+    public String FromID;
+    public String ToID;
 
     public String FromAddr;
-    public int FromPort;
+    public String FromPort;
     public String ToAddr;
-    public int ToPort;
+    public String ToPort;
 
-    public Message(String Type, String Data, String FromAddr, String FromPort, String ToAddr,String ToPort){
+    public Message(String Type, String Data, String FromAddr, String FromPort, String ToAddr,String ToPort,String FromID,String ToID){
         this.FromAddr = FromAddr;
-        this.FromPort = Integer.parseInt(FromPort);
+        this.FromPort = FromPort;
         this.ToAddr = ToAddr;
-        this.ToPort = Integer.parseInt(ToPort);
+        this.ToPort = ToPort;
+        this.Data = Data;
+        this.Type = Type;
+        this.FromID = FromID;
+        this.ToID = ToID;
     }
 
 }

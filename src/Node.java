@@ -8,11 +8,13 @@ import java.net.UnknownHostException;
 public class Node {
     private InetAddress ipAddress;
     private int ID;
-    private int port;
+    private int listenPort;
+    private int sendPort;
 
-    public Node(String ipAddress, int port, int ID){
+    public Node(String ipAddress, int listenPort,int sendPort, int ID){
         this.ID = ID;
-        this.port = port;
+        this.listenPort = listenPort;
+        this.sendPort = sendPort;
         try {
             this.ipAddress = InetAddress.getByName(ipAddress);
         } catch (UnknownHostException e) {
@@ -24,7 +26,6 @@ public class Node {
         return this.ipAddress;
     }
 
-    public int getPort(){return this.port;}
 
     public void setIpAddress(String ipAddress){
         try {
@@ -32,6 +33,18 @@ public class Node {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getID(){
+        return this.ID;
+    }
+
+    public int getListenPort(){
+        return this.listenPort;
+    }
+
+    public int getSendPort(){
+        return this.sendPort;
     }
 
 }

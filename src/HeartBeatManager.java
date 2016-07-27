@@ -13,7 +13,7 @@ public class HeartBeatManager implements Runnable {
     @Override
     public void run() {
         while(true){
-            client.broadcastMessage(new Message("HEARTBEAT","","localhost","8000","localhost","8000"));
+            client.broadcastMessage(new Message("HEARTBEAT","","localhost","8000","","",this.ID+"",""));
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
