@@ -1,4 +1,3 @@
-import java.util.List;
 
 /**
  * Created by pavan on 25/07/2016.
@@ -13,8 +12,11 @@ public class Message {
     public String FromPort;
     public String ToAddr;
     public String ToPort;
+    public String MessageID;
 
-    public Message(String Type, String Data, String FromAddr, String FromPort, String ToAddr,String ToPort,String FromID,String ToID){
+    public String TTL;
+
+    public Message(String Type, String Data, String FromAddr, String FromPort, String ToAddr,String ToPort,String FromID,String ToID,String MessageID){
         this.FromAddr = FromAddr;
         this.FromPort = FromPort;
         this.ToAddr = ToAddr;
@@ -23,6 +25,17 @@ public class Message {
         this.Type = Type;
         this.FromID = FromID;
         this.ToID = ToID;
+        this.TTL = "0";
+        this.MessageID = MessageID;
+    }
+
+    public void incrementTTL(){
+       int TTL = Integer.parseInt(this.TTL)+1;
+        this.TTL = TTL + "";
+    }
+
+    public int getTTL(){
+        return Integer.parseInt(this.TTL);
     }
 
 }

@@ -12,20 +12,30 @@ public class Controller implements Runnable {
     private int ID;
     private String ipAddress;
     private String NodeData;
+    private int totalNodes;
     private int listenPort;
     private int sendPort;
-    private List<Node> adjNodes = new ArrayList<>();
+    private CombinedSystem combinedSystem;
+
+
 
     private Map<Integer,List<Integer>> globalAdjMapping = new HashMap<>();
     private Map<String,Timestamp> latestHeartbeats = new HashMap<>();
+    private CombinedSystem system;
 
     public Controller(int ID,int listenPort, int sendPort,String ipAddress) {
         this.ID = ID; this.listenPort = listenPort; this.sendPort = sendPort; this.ipAddress = ipAddress;
     }
 
+    public void initNeighbours(List<Node> neighbours){
+        combinedSystem.adjNodes = neighbours;
+        this.totalNodes = neighbours.size()+1;
+    }
+
 
     @Override
     public void run() {
+        initNeighbours(combinedSystem.adjNodes);
         try {
             DatagramSocket serverSocket = new DatagramSocket(listenPort);
             while(true) {
@@ -44,7 +54,20 @@ public class Controller implements Runnable {
         String receivedData = new String(packet.getData(),0,packet.getLength());
         Gson gson = new Gson();
         Message receivedMessage = gson.fromJson(receivedData,Message.class);
-        System.out.println("Thread: " + Thread.currentThread().getId() + " Type: " + receivedMessage.Type + ", " + "FROM: " + receivedMessage.FromAddr);
+
+        receivedMessage.incrementTTL();
+        if (receivedMessage.getTTL() > 3*totalNodes) {
+            return;
+        }
+
+        if (combinedSystem.receivedMessages.contains(receivedMessage) ||
+                combinedSystem.sentMessages.contains(receivedMessage)){
+            return;
+        }
+        combinedSystem.receivedMessages.add(receivedMessage.MessageID);
+
+        System.out.println("FROM: " + receivedMessage.FromID + " TO: " + receivedMessage.ToID + " " + receivedMessage.MessageID);
+
         if(receivedMessage.Type.equals("SYNC")){
             handleSync(receivedMessage);
         }else if(receivedMessage.Type.equals("PAYLOAD")){
@@ -59,8 +82,8 @@ public class Controller implements Runnable {
 
     private void handleJOIN(Message receivedMessage) {
         Node adjNode = new Node(receivedMessage.FromAddr,Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromID));
-        Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","");
-        adjNodes.add(adjNode);
+        Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","",receivedMessage.MessageID);
+        combinedSystem.adjNodes.add(adjNode);
         broadcastMessage(syncMessage);
     }
 
@@ -71,6 +94,7 @@ public class Controller implements Runnable {
 
     private void handlePayload(Message receivedMessage) {
         this.NodeData = receivedMessage.Data;
+        receivedMessage.FromID = this.ID + "";
         broadcastMessage(receivedMessage);
     }
 
@@ -78,13 +102,14 @@ public class Controller implements Runnable {
         Message originalJOINMessage = new Gson().fromJson(receivedMessage.Data,Message.class);
         globalAdjMapping.get(originalJOINMessage.FromID).add(Integer.parseInt(originalJOINMessage.ToID));
         globalAdjMapping.get(originalJOINMessage.ToID).add(Integer.parseInt(originalJOINMessage.FromID));
-        Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","");
+        Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","",receivedMessage.MessageID);
         broadcastAllExcept(syncMessage,Integer.parseInt(receivedMessage.FromID));
 
     }
 
     public void broadcastMessage(Message message){
-        for(Node neighbour : adjNodes){
+        System.out.println(this.ID + " " + combinedSystem.adjNodes);
+        for(Node neighbour : combinedSystem.adjNodes){
             message.ToID = neighbour.getID()+"";
             message.ToAddr = neighbour.getIpAddress().getHostAddress();
             message.ToPort = neighbour.getListenPort() + "";
@@ -93,7 +118,7 @@ public class Controller implements Runnable {
     }
 
     public void broadcastAllExcept(Message message,int nodeID){
-        for(Node neighbour: adjNodes){
+        for(Node neighbour: combinedSystem.adjNodes){
             if(neighbour.getID() != nodeID){
                 message.ToID = neighbour.getID() + "";
                 message.ToAddr = neighbour.getIpAddress().getHostAddress();
@@ -120,5 +145,9 @@ public class Controller implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void setSystem(CombinedSystem system) {
+        this.system = system;
     }
 }

@@ -47,4 +47,9 @@ public class Node {
         return this.sendPort;
     }
 
+    @Override
+    public String toString(){
+        return this.getListenPort() + "";
+    }
+
 }

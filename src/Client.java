@@ -2,16 +2,11 @@ import com.google.gson.Gson;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 /**
  * Created by pavan on 26/07/2016.
  */
 public class Client {
-    private List<Node> neighbours = new ArrayList<Node>();
     private int ID;
     private int destPort;
 
@@ -19,12 +14,14 @@ public class Client {
     public Client(int ID,int destPort){
         this.ID = ID;
         this.destPort = destPort;
-        this.neighbours.add(new Node("localhost",8000,0));
     }
 
 
     public void broadcastMessage(Message message){
-        for(Node neighbour : neighbours){
+        for(Node neighbour : CombinedSystem.adjNodes){
+            message.ToID = neighbour.getID()+"";
+            message.ToAddr = neighbour.getIpAddress().getHostAddress();
+            message.ToPort = neighbour.getListenPort() + "";
             sendMessage(neighbour,message);
         }
     }
@@ -34,6 +31,10 @@ public class Client {
          * Create a UDP packet consisting of the source ID and the message payload
          * All the nodes will be listening for pulses on an universally known port.
          */
+
+        message.ToID = destination.getID()+"";
+        message.ToAddr = destination.getIpAddress().getHostAddress();
+        message.ToPort = destination.getListenPort() + "";
 
         DatagramSocket clientSocket = null;
         try {
