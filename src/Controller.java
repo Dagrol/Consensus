@@ -4,9 +4,7 @@ import java.net.*;
 import java.security.Timestamp;
 import java.util.*;
 
-/**
- * Created by pavan on 25/07/2016.
- */
+
 public class Controller implements Runnable {
 
     private int ID;
@@ -64,7 +62,6 @@ public class Controller implements Runnable {
             return;
         }
 
-        this.sharedData.receivedMessages.add(receivedMessage.MessageID);
 
         System.out.println("FROM: " + receivedMessage.FromID + " TO: " + receivedMessage.ToID + " " + receivedMessage.MessageID);
 
@@ -83,7 +80,9 @@ public class Controller implements Runnable {
     private void handleJOIN(Message receivedMessage) {
         Node adjNode = new Node(receivedMessage.FromAddr,Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromID));
         Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","",receivedMessage.MessageID);
-        this.sharedData.adjNodes.add(adjNode);
+        synchronized (this.sharedData.adjNodes){
+            this.sharedData.adjNodes.add(adjNode);
+        }
         broadcastMessage(syncMessage);
     }
 
@@ -93,6 +92,9 @@ public class Controller implements Runnable {
     }
 
     private void handlePayload(Message receivedMessage) {
+        synchronized (this.sharedData.receivedMessages) {
+            this.sharedData.receivedMessages.add(receivedMessage.MessageID);
+        }
         this.NodeData = receivedMessage.Data;
         receivedMessage.FromID = this.ID + "";
         broadcastMessage(receivedMessage);
@@ -147,6 +149,8 @@ public class Controller implements Runnable {
     }
 
     public void setSharedData(SharedData sharedData) {
-        this.sharedData = sharedData;
+        synchronized (this) {
+            this.sharedData = sharedData;
+        }
     }
 }

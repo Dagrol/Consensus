@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by pavan on 25/07/2016.
- */
 public class Demo {
 
     public static void main(String[] args) throws Exception{

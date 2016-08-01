@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by pavan on 01/08/2016.
- */
 public class SharedData {
     public volatile List<String> sentMessages;
     public volatile  List<String> receivedMessages;

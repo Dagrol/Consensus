@@ -1,20 +1,18 @@
 import com.google.gson.Gson;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-/**
- * Created by pavan on 26/07/2016.
- */
+
 public class Client {
     private int ID;
     private int destPort;
     private SharedData sharedData;
 
 
-    public Client(int ID,int destPort){
+    public Client(int ID,int destPort,SharedData sharedData){
         this.ID = ID;
         this.destPort = destPort;
+        this.sharedData = sharedData;
     }
 
 
@@ -49,7 +47,7 @@ public class Client {
         }
     }
 
-    public void setSystem(SharedData sharedData) {
+    public void setSharedData(SharedData sharedData) {
         this.sharedData = sharedData;
     }
 }
