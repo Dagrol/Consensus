@@ -1,4 +1,3 @@
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -9,7 +8,7 @@ public class HeartBeatManager implements Runnable {
     private String address;
     private int ID;
     private int sendPort;
-    private CombinedSystem system;
+    private SharedData sharedData;
 
     public HeartBeatManager(String address, int ID, int sendPort){
         this.client = new Client(ID,sendPort);
@@ -22,12 +21,14 @@ public class HeartBeatManager implements Runnable {
     public void run() {
         //while(true){
             String messageID = new Random().nextInt(1000000)+""+this.ID;
-            Message heartBeat = new Message("PAYLOAD","",address,sendPort+"","","",this.ID+"","",messageID);
-            CombinedSystem.sentMessages.add(messageID);
+            Message heartBeat = new Message("PAYLOAD","",this.address,this.sendPort+"","","",this.ID+"","",messageID);
+            this.sharedData.sentMessages.add(messageID);
 
            // client.broadcastMessage();
+            if(this.ID != 0){
+                client.sendMessage(this.sharedData.adjNodes.get(0),heartBeat);
+            }
 
-            client.sendMessage(CombinedSystem.adjNodes.get(0),heartBeat);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -36,7 +37,7 @@ public class HeartBeatManager implements Runnable {
         //}
     }
 
-    public void setSystem(CombinedSystem system) {
-        this.system = system;
+    public void setSharedData(SharedData sharedData) {
+        this.sharedData = sharedData;
     }
 }

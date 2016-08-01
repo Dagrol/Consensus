@@ -15,27 +15,26 @@ public class Controller implements Runnable {
     private int totalNodes;
     private int listenPort;
     private int sendPort;
-    private CombinedSystem combinedSystem;
+    private SharedData sharedData;
 
 
 
     private Map<Integer,List<Integer>> globalAdjMapping = new HashMap<>();
     private Map<String,Timestamp> latestHeartbeats = new HashMap<>();
-    private CombinedSystem system;
 
     public Controller(int ID,int listenPort, int sendPort,String ipAddress) {
         this.ID = ID; this.listenPort = listenPort; this.sendPort = sendPort; this.ipAddress = ipAddress;
     }
 
     public void initNeighbours(List<Node> neighbours){
-        combinedSystem.adjNodes = neighbours;
+        this.sharedData.adjNodes = neighbours;
         this.totalNodes = neighbours.size()+1;
     }
 
 
     @Override
     public void run() {
-        initNeighbours(combinedSystem.adjNodes);
+        initNeighbours(this.sharedData.adjNodes);
         try {
             DatagramSocket serverSocket = new DatagramSocket(listenPort);
             while(true) {
@@ -60,11 +59,12 @@ public class Controller implements Runnable {
             return;
         }
 
-        if (combinedSystem.receivedMessages.contains(receivedMessage) ||
-                combinedSystem.sentMessages.contains(receivedMessage)){
+        if (this.sharedData.receivedMessages.contains(receivedMessage.MessageID) ||
+                this.sharedData.sentMessages.contains(receivedMessage.MessageID)){
             return;
         }
-        combinedSystem.receivedMessages.add(receivedMessage.MessageID);
+
+        this.sharedData.receivedMessages.add(receivedMessage.MessageID);
 
         System.out.println("FROM: " + receivedMessage.FromID + " TO: " + receivedMessage.ToID + " " + receivedMessage.MessageID);
 
@@ -83,7 +83,7 @@ public class Controller implements Runnable {
     private void handleJOIN(Message receivedMessage) {
         Node adjNode = new Node(receivedMessage.FromAddr,Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromPort),Integer.parseInt(receivedMessage.FromID));
         Message syncMessage = new Message("SYNC",new Gson().toJson(receivedMessage),this.ipAddress,this.sendPort+"","receiverAddress","receiverPort",this.ID+"","",receivedMessage.MessageID);
-        combinedSystem.adjNodes.add(adjNode);
+        this.sharedData.adjNodes.add(adjNode);
         broadcastMessage(syncMessage);
     }
 
@@ -108,8 +108,7 @@ public class Controller implements Runnable {
     }
 
     public void broadcastMessage(Message message){
-        System.out.println(this.ID + " " + combinedSystem.adjNodes);
-        for(Node neighbour : combinedSystem.adjNodes){
+        for(Node neighbour : this.sharedData.adjNodes){
             message.ToID = neighbour.getID()+"";
             message.ToAddr = neighbour.getIpAddress().getHostAddress();
             message.ToPort = neighbour.getListenPort() + "";
@@ -118,7 +117,7 @@ public class Controller implements Runnable {
     }
 
     public void broadcastAllExcept(Message message,int nodeID){
-        for(Node neighbour: combinedSystem.adjNodes){
+        for(Node neighbour: this.sharedData.adjNodes){
             if(neighbour.getID() != nodeID){
                 message.ToID = neighbour.getID() + "";
                 message.ToAddr = neighbour.getIpAddress().getHostAddress();
@@ -147,7 +146,7 @@ public class Controller implements Runnable {
         }
     }
 
-    public void setSystem(CombinedSystem system) {
-        this.system = system;
+    public void setSharedData(SharedData sharedData) {
+        this.sharedData = sharedData;
     }
 }

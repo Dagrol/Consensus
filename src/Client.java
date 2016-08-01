@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 public class Client {
     private int ID;
     private int destPort;
+    private SharedData sharedData;
 
 
     public Client(int ID,int destPort){
@@ -18,7 +19,7 @@ public class Client {
 
 
     public void broadcastMessage(Message message){
-        for(Node neighbour : CombinedSystem.adjNodes){
+        for(Node neighbour : this.sharedData.adjNodes){
             message.ToID = neighbour.getID()+"";
             message.ToAddr = neighbour.getIpAddress().getHostAddress();
             message.ToPort = neighbour.getListenPort() + "";
@@ -40,11 +41,15 @@ public class Client {
         try {
             clientSocket = new DatagramSocket();
             byte[] sendData = new Gson().toJson(message).getBytes();
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destination.getIpAddress(), destPort);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destination.getIpAddress(), destination.getSendPort());
             clientSocket.send(sendPacket);
             clientSocket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void setSystem(SharedData sharedData) {
+        this.sharedData = sharedData;
     }
 }
