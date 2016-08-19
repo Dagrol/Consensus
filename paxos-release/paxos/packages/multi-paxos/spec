@@ -1,0 +1,7 @@
+---
+name: multi-paxos
+
+dependencies:
+
+files:
+-	multi-paxos/**/*
